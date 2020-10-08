@@ -1,0 +1,48 @@
+from wordcloud import WordCloud
+import nltk
+from collections import Counter 
+#한국 법률 말뭉치
+from konlpy.corpus import kolaw
+from konlpy.tag import  Twitter
+import matplotlib.pyplot as plt
+import numpy as np
+from wordcloud import  ImageColorGenerator
+from PIL import Image
+import random
+
+#한국법률말뭉치로 부터 헌법을 읽어온다 
+c = kolaw.open('constitution.txt').read()
+print(c)
+
+t = Twitter()
+tokens_ko = t.nouns(c)
+print(tokens_ko)
+
+#제거하고 싶은 단어들 제거하기 
+stop_words = ['다만', '그', '곳', '나','일', '패', '달리', '의']
+tokens_ko = [each_word for each_word in tokens_ko if each_word not in stop_words]
+#print(tokens_ko)
+data = Counter(tokens_ko).most_common(100)
+temp_data = dict(data)
+
+mask_image = np.array(Image.open("./image/kroea_mask.jpg"))
+
+wordcloud = WordCloud(font_path="c:/Windows/Fonts/malgun.ttf",
+                       relative_scaling=0.2, 
+                       background_color='white',
+                       mask=mask_image,).generate_from_frequencies(temp_data)
+
+plt.figure(figsize=(16,8))
+
+random.seed(1234)
+#별도의 색을 부여하려면 
+def custom_color_func(word, font_size, position, orientation, random_state=None,
+                    **kwargs):
+
+    color="rgb({},{},{})".format( random.randint(0, 255),  random.randint(0, 255), random.randint(0, 255))
+    return color 
+
+plt.imshow(wordcloud.recolor(color_func=custom_color_func), interpolation="bilinear")
+
+plt.axis("off")
+plt.show()
